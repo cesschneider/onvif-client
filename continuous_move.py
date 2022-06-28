@@ -11,13 +11,13 @@ PORT=80
 USER=os.getenv("ONVIF_USERNAME")
 PASS=os.getenv("ONVIF_PASSWORD")
 
-STEP_SIZE=0.1
+STEP_SIZE=0.05
 XMAX = STEP_SIZE
 XMIN = STEP_SIZE * -1.0
 YMAX = STEP_SIZE
 YMIN = STEP_SIZE * -1.0
-ZXMAX = STEP_SIZE
-ZXMIN = STEP_SIZE * -1.0
+ZXMAX = STEP_SIZE * 2
+ZXMIN = STEP_SIZE * 2 * -1.0
 
 continuous_move = None
 relative_move = None
@@ -80,11 +80,13 @@ def zoom_out(ptz, request):
 def move_up(ptz, request):
     request.Translation.PanTilt.x = 0
     request.Translation.PanTilt.y = YMAX
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
 
 def move_down(ptz, request):
     request.Translation.PanTilt.x = 0
     request.Translation.PanTilt.y = YMIN
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
 
 # def move_down_relative(ptz, request):
@@ -115,36 +117,42 @@ def move_right(ptz, request):
     print ('move right...')
     request.Translation.PanTilt.x = XMAX
     request.Translation.PanTilt.y = 0
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
 
 def move_left(ptz, request):
     print ('move left...')
     request.Translation.PanTilt.x = XMIN
     request.Translation.PanTilt.y = 0
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
     
 def move_upleft(ptz, request):
     print ('move up left...')
     request.Translation.PanTilt.x = XMIN
     request.Translation.PanTilt.y = YMAX
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
     
 def move_upright(ptz, request):
     print ('move up left...')
     request.Translation.PanTilt.x = XMAX
     request.Translation.PanTilt.y = YMAX
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
     
 def move_downleft(ptz, request):
     print ('move down left...')
     request.Translation.PanTilt.x = XMIN
     request.Translation.PanTilt.y = YMIN
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
     
 def move_downright(ptz, request):
     print ('move down left...')
     request.Translation.PanTilt.x = XMAX
     request.Translation.PanTilt.y = YMIN
+    request.Translation.Zoom.x = 0
     do_move_relative(ptz, request)
 
 def setup_move():    
@@ -221,9 +229,9 @@ def run_command(lov):
         goto_home_position(ptz,home_position)
 
     elif lov[0].lower() in ["l","le","lef","left"]:
-        move_left(ptz,relative_move)
-    elif lov[0].lower() in ["r","ri","rig","righ","right"]:
         move_right(ptz,relative_move)
+    elif lov[0].lower() in ["r","ri","rig","righ","right"]:
+        move_left(ptz,relative_move)
 
     elif lov[0].lower() in ["u","up"]:
         #move_up_absolute(ptz,absolute_move)
@@ -237,14 +245,14 @@ def run_command(lov):
     elif lov[0].lower() in ["zo","zoom_out"]:
         zoom_out(ptz,relative_move)
 
-    elif lov[0].lower() in ["ul"]:
-        move_upleft(ptz,relative_move)
-    elif lov[0].lower() in ["ur"]:
+    elif lov[0].lower() in ["ul","up_left"]:
         move_upright(ptz,relative_move)
-    elif lov[0].lower() in ["dl"]:
-        move_downleft(ptz,relative_move)
-    elif lov[0].lower() in ["dr"]:
+    elif lov[0].lower() in ["ur","up_right"]:
+        move_upleft(ptz,relative_move)
+    elif lov[0].lower() in ["dl","down_left"]:
         move_downright(ptz,relative_move)
+    elif lov[0].lower() in ["dr","down_right"]:
+        move_downleft(ptz,relative_move)
 
     elif lov[0].lower() in ["s","st","sto","stop"]:
         ptz.Stop({'ProfileToken': relative_move.ProfileToken})
@@ -305,7 +313,7 @@ if __name__ == '__main__':
     device_client.connect()
 
     setup_move()
-    goto_home_position(ptz,home_position)
+    #goto_home_position(ptz,home_position)
 
     loop = asyncio.get_event_loop()
     try:
